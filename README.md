@@ -4,7 +4,7 @@ A focused Kotlin Multiplatform commerce demo built over a 4-day sprint.
 
 This project demonstrates shared Kotlin business logic, Android Jetpack Compose UI, real live API data, async product/category loading, favourite-item persistence, cart flow, sorting, and custom animations.
 
-Video demo: <add Google Drive video link here>
+Video demo: https://drive.google.com/file/d/1Jq_cii5yrTpa_dd3Yek6045J2ZawwDGI/view?usp=share_link
 
 ## Quick Links
 
