@@ -30,11 +30,11 @@ Video demo: https://drive.google.com/file/d/1Jq_cii5yrTpa_dd3Yek6045J2ZawwDGI/vi
 - [REST client / networking layer](shared/src/commonMain/kotlin/com/hunterlindsay/kmpcommercedemo/core/networking/rest_client)
 - [Dependency setup](shared/src/commonMain/kotlin/com/hunterlindsay/kmpcommercedemo/core/app_wiring/KMPCommerceDemoDependencies.kt)
 - [Android Compose UI](androidApp/src/main/java/com/hunterlindsay/kmpcommercedemo/android/ui)
-- [Browse UI](androidApp/src/main/java/com/hunterlindsay/kmpcommercedemo/android/ui/browse)
+- [Browse UI](androidApp/src/main/java/com/hunterlindsay/kmpcommercedemo/android/ui/core/browse)
 - [Core app shell / tabs / overlays](androidApp/src/main/java/com/hunterlindsay/kmpcommercedemo/android/ui/core)
 - [Cart UI](androidApp/src/main/java/com/hunterlindsay/kmpcommercedemo/android/ui/core/cart)
 - [Saved/Favourites UI](androidApp/src/main/java/com/hunterlindsay/kmpcommercedemo/android/ui/core/saved)
-- [Product tests](shared/src/commonTest/kotlin/com/hunterlindsay/kmpcommercedemo/concerns/products)
+- [Product tests](shared/src/commonTest/kotlin/com/hunterlindsay/kmpcommercedemo/kotlin)
 
 ## Highlights
 
