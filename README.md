@@ -6,6 +6,24 @@ This project demonstrates shared Kotlin business logic, Android Jetpack Compose 
 
 Video demo: https://drive.google.com/file/d/1Jq_cii5yrTpa_dd3Yek6045J2ZawwDGI/view?usp=share_link
 
+## Screenshots
+
+<p align="center">
+  <img src="screenshots/opening.png" width="220" />
+  <img src="screenshots/browse.png" width="220" />
+  <img src="screenshots/product-detail.png" width="220" />
+</p>
+
+<p align="center">
+  <img src="screenshots/saved.png" width="220" />
+  <img src="screenshots/cart.png" width="220" />
+  <img src="screenshots/cart-detail.png" width="220" />
+</p>
+
+<p align="center">
+  <img src="screenshots/checkout.png" width="220" />
+</p>
+
 ## Quick Links
 
 - [Shared product/business logic](shared/src/commonMain/kotlin/com/hunterlindsay/kmpcommercedemo/concerns/products)
