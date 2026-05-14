@@ -32,6 +32,7 @@ import androidx.compose.ui.zIndex
 import com.hunterlindsay.kmpcommercedemo.android.ui.CommerceDarkBlue
 import com.hunterlindsay.kmpcommercedemo.android.ui.core.browse.BrowseCategoryMapper
 import com.hunterlindsay.kmpcommercedemo.android.ui.core.browse.BrowseCategorySkeletonView
+import com.hunterlindsay.kmpcommercedemo.android.ui.core.sort.ProductSortMode
 import com.hunterlindsay.kmpcommercedemo.concerns.products.Product
 import com.hunterlindsay.kmpcommercedemo.concerns.products.ProductService
 
@@ -43,6 +44,7 @@ import com.hunterlindsay.kmpcommercedemo.concerns.products.ProductService
 fun BrowseView(
     productService: ProductService,
     revealedCategoryCount: Int,
+    selectedSortMode: ProductSortMode?,
     topOverlayHeight: Dp,
     bottomOverlayHeight: Dp,
     browseTitleAlpha: Float,
@@ -106,6 +108,7 @@ fun BrowseView(
                 productsByCategoryId = productServiceState.productsByCategoryId,
                 loadingCategoryIds = productServiceState.loadingCategoryIds,
                 revealedCategoryCount = revealedCategoryCount,
+                selectedSortMode = selectedSortMode,
                 contentPadding = PaddingValues(
                     top = listTopPadding,
                     bottom = listBottomPadding

@@ -33,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -479,7 +480,7 @@ private fun ProductDetailSavedButtonView(
         contentAlignment = Alignment.Center
     ) {
         Text(
-            modifier = Modifier.offset(y = (-1.5).dp),
+            modifier = Modifier.offset(y = (-2).dp),
             text = if (isSaved) {
                 "★"
             } else {
@@ -864,13 +865,32 @@ private fun ProductDetailCloseButtonView(
             ),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = "×",
-            fontWeight = FontWeight.Black,
-            fontSize = 25.sp,
-            lineHeight = 25.sp,
-            color = CommerceDarkBlue.copy(alpha = 0.72f)
-        )
+        Box(
+            modifier = Modifier.size(16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(16.dp)
+                    .height(3.dp)
+                    .rotate(45f)
+                    .background(
+                        color = CommerceDarkBlue.copy(alpha = 0.72f),
+                        shape = RoundedCornerShape(999.dp)
+                    )
+            )
+
+            Box(
+                modifier = Modifier
+                    .width(16.dp)
+                    .height(3.dp)
+                    .rotate(-45f)
+                    .background(
+                        color = CommerceDarkBlue.copy(alpha = 0.72f),
+                        shape = RoundedCornerShape(999.dp)
+                    )
+            )
+        }
     }
 }
 

@@ -1,6 +1,8 @@
 package com.hunterlindsay.kmpcommercedemo.android.ui.core.cart
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,11 +20,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -47,7 +52,8 @@ fun CartView(
     topOverlayHeight: Dp,
     bottomOverlayHeight: Dp,
     modifier: Modifier = Modifier,
-    onProductSelected: (Product, Rect) -> Unit
+    onProductSelected: (Product, Rect) -> Unit,
+    onCheckoutSelected: (Rect) -> Unit
 ) {
     val cartLines = remember(
         products,
@@ -157,19 +163,12 @@ fun CartView(
     val titleHeight = 38.dp
     val titleToListSpacing = 40.dp
 
-    val summaryHeight = 94.dp
-    val summaryToTabBarSpacing = 24.dp
-
     val listTopPadding =
         titleTopPadding +
                 titleHeight +
                 titleToListSpacing
 
-    val listBottomPadding =
-        bottomOverlayHeight +
-                summaryHeight +
-                summaryToTabBarSpacing +
-                34.dp
+    val listBottomPadding = bottomOverlayHeight + 24.dp
 
     val topFadeHeight =
         titleTopPadding +
@@ -218,30 +217,19 @@ fun CartView(
                 }
 
                 item {
+                    CartSummaryView(
+                        itemCount = products.size,
+                        subtotal = subtotal,
+                        onCheckoutSelected = onCheckoutSelected
+                    )
+                }
+
+                item {
                     Spacer(
-                        modifier = Modifier.height(1.dp)
+                        modifier = Modifier.height(220.dp)
                     )
                 }
             }
-
-            CartBottomFade(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .height(bottomOverlayHeight + summaryHeight + summaryToTabBarSpacing + 40.dp)
-                    .zIndex(1f)
-            )
-
-            CartSummaryView(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(
-                        bottom = bottomOverlayHeight + summaryToTabBarSpacing
-                    )
-                    .zIndex(4f),
-                itemCount = products.size,
-                subtotal = subtotal
-            )
         }
 
         CartTopFade(
@@ -263,24 +251,27 @@ fun CartView(
 private fun CartSummaryView(
     itemCount: Int,
     subtotal: Double,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onCheckoutSelected: (Rect) -> Unit
 ) {
+    val checkoutBounds = remember {
+        mutableStateOf(Rect.Zero)
+    }
+
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(94.dp)
             .background(
                 color = CommerceWhite.copy(alpha = 0.18f),
                 shape = RoundedCornerShape(28.dp)
             )
             .padding(
                 horizontal = 20.dp,
-                vertical = 17.dp
+                vertical = 18.dp
             )
     ) {
         Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center
+            modifier = Modifier.fillMaxWidth()
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth()
@@ -324,6 +315,39 @@ private fun CartSummaryView(
                     fontSize = 25.sp,
                     lineHeight = 25.sp,
                     color = CommerceWhite
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(54.dp)
+                    .onGloballyPositioned { coordinates ->
+                        checkoutBounds.value = coordinates.boundsInRoot()
+                    }
+                    .background(
+                        color = CommerceWhite,
+                        shape = RoundedCornerShape(999.dp)
+                    )
+                    .clickable(
+                        interactionSource = remember {
+                            MutableInteractionSource()
+                        },
+                        indication = null
+                    ) {
+                        onCheckoutSelected(checkoutBounds.value)
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "CHECKOUT",
+                    fontWeight = FontWeight.Black,
+                    fontSize = 15.sp,
+                    lineHeight = 16.sp,
+                    letterSpacing = 1.1.sp,
+                    color = CommerceDarkBlue
                 )
             }
         }
@@ -420,24 +444,6 @@ private fun CartTopFade(
                     0.86f to CommerceDarkBlue.copy(alpha = 0.70f),
                     0.96f to CommerceDarkBlue.copy(alpha = 0.28f),
                     1.00f to CommerceDarkBlue.copy(alpha = 0f)
-                )
-            )
-        )
-    )
-}
-
-@Composable
-private fun CartBottomFade(
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier.background(
-            Brush.verticalGradient(
-                colorStops = arrayOf(
-                    0.00f to CommerceDarkBlue.copy(alpha = 0f),
-                    0.24f to CommerceDarkBlue.copy(alpha = 0.50f),
-                    0.48f to CommerceDarkBlue.copy(alpha = 0.88f),
-                    1.00f to CommerceDarkBlue
                 )
             )
         )

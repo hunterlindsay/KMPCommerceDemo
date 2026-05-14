@@ -32,6 +32,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.unit.dp
 import com.hunterlindsay.kmpcommercedemo.android.ui.core.browse.BrowseCategory
 import com.hunterlindsay.kmpcommercedemo.android.ui.core.browse.BrowseProductListView
+import com.hunterlindsay.kmpcommercedemo.android.ui.core.sort.ProductSortMode
 import com.hunterlindsay.kmpcommercedemo.concerns.products.Product
 
 /**
@@ -45,6 +46,7 @@ fun BrowseCategorySelectorView(
     productsByCategoryId: Map<String, List<Product>>,
     loadingCategoryIds: Set<String>,
     revealedCategoryCount: Int,
+    selectedSortMode: ProductSortMode?,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(),
     onCategoryExpanded: (String) -> Unit = {},
@@ -115,6 +117,7 @@ fun BrowseCategorySelectorView(
                     isSelected = selectedCategoryId == category.id,
                     isLoadingProducts = loadingCategoryIds.contains(category.id),
                     products = productsByCategoryId[category.id].orEmpty(),
+                    selectedSortMode = selectedSortMode,
                     onParentClicked = {
                         selectedCategoryId = category.id
 
@@ -146,6 +149,7 @@ private fun BrowseCategoryExpandableRowView(
     isSelected: Boolean,
     isLoadingProducts: Boolean,
     products: List<Product>,
+    selectedSortMode: ProductSortMode?,
     modifier: Modifier = Modifier,
     onParentClicked: () -> Unit,
     onProductSelected: (Product, Rect) -> Unit
@@ -181,7 +185,8 @@ private fun BrowseCategoryExpandableRowView(
             AnimatedContent(
                 targetState = BrowseProductContentState(
                     isLoading = isLoadingProducts,
-                    products = products
+                    products = products,
+                    selectedSortMode = selectedSortMode
                 ),
                 transitionSpec = {
                     fadeIn(
@@ -208,6 +213,7 @@ private fun BrowseCategoryExpandableRowView(
                         .fillMaxWidth()
                         .padding(start = 26.dp),
                     products = contentState.products,
+                    selectedSortMode = contentState.selectedSortMode,
                     isLoading = contentState.isLoading,
                     onProductSelected = onProductSelected
                 )
@@ -218,5 +224,6 @@ private fun BrowseCategoryExpandableRowView(
 
 private data class BrowseProductContentState(
     val isLoading: Boolean,
-    val products: List<Product>
+    val products: List<Product>,
+    val selectedSortMode: ProductSortMode?
 )

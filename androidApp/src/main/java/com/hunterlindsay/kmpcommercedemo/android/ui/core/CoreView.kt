@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -22,11 +23,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.zIndex
 import com.hunterlindsay.kmpcommercedemo.android.ui.browse.BrowseView
 import com.hunterlindsay.kmpcommercedemo.android.ui.core.browse.SelectedProductPresentation
 import com.hunterlindsay.kmpcommercedemo.android.ui.core.cart.CartView
+import com.hunterlindsay.kmpcommercedemo.android.ui.core.saved.SavedProductsPersistence
 import com.hunterlindsay.kmpcommercedemo.android.ui.core.sort.ProductSortMode
 import com.hunterlindsay.kmpcommercedemo.android.ui.core.sort.nextModeForFamily
 import com.hunterlindsay.kmpcommercedemo.android.ui.core.tab_view.CoreTab
@@ -48,8 +51,13 @@ fun CoreView(
     productService: ProductService,
     initialStartButtonBounds: Rect?
 ) {
+    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val density = LocalDensity.current
+
+    val savedProductsPersistence = remember {
+        SavedProductsPersistence(context)
+    }
 
     val debugSlowAnimations = false
 
@@ -113,12 +121,24 @@ fun CoreView(
         mutableStateOf(false)
     }
 
+    var checkoutSourceBounds by remember {
+        mutableStateOf<Rect?>(null)
+    }
+
     var cartProducts by remember {
         mutableStateOf<List<Product>>(emptyList())
     }
 
     var savedProducts by remember {
         mutableStateOf<List<Product>>(emptyList())
+    }
+
+    var savedProductIds by remember {
+        mutableStateOf<Set<Int>>(emptySet())
+    }
+
+    var hasLoadedSavedProductIds by remember {
+        mutableStateOf(false)
     }
 
     var selectedBrowseSortMode by remember {
@@ -136,6 +156,8 @@ fun CoreView(
     var cartTabBounds by remember {
         mutableStateOf<Rect?>(null)
     }
+
+    val productServiceState by productService.state.collectAsState()
 
     val displayedSavedProducts = remember(
         savedProducts,
@@ -162,6 +184,52 @@ fun CoreView(
 
     val bottomOverlayHeight = with(density) {
         tabBarHeightPx.toDp()
+    }
+
+    LaunchedEffect(Unit) {
+        savedProductIds = savedProductsPersistence.loadSavedProductIds()
+        hasLoadedSavedProductIds = true
+    }
+
+    LaunchedEffect(
+        hasLoadedSavedProductIds,
+        savedProductIds
+    ) {
+        if (hasLoadedSavedProductIds) {
+            savedProductsPersistence.saveProductIds(savedProductIds)
+        }
+    }
+
+    LaunchedEffect(
+        hasLoadedSavedProductIds,
+        savedProductIds,
+        productServiceState.productsByCategoryId
+    ) {
+        if (!hasLoadedSavedProductIds || savedProductIds.isEmpty()) {
+            return@LaunchedEffect
+        }
+
+        val loadedProducts = productServiceState.productsByCategoryId
+            .values
+            .flatten()
+
+        val restoredProducts = loadedProducts.filter { product ->
+            savedProductIds.contains(product.id)
+        }
+
+        if (restoredProducts.isNotEmpty()) {
+            val existingProductIds = savedProducts.map { product ->
+                product.id
+            }.toSet()
+
+            val productsToAdd = restoredProducts.filter { product ->
+                !existingProductIds.contains(product.id)
+            }
+
+            if (productsToAdd.isNotEmpty()) {
+                savedProducts = savedProducts + productsToAdd
+            }
+        }
     }
 
     LaunchedEffect(initialStartButtonBounds) {
@@ -246,6 +314,7 @@ fun CoreView(
                     BrowseView(
                         productService = productService,
                         revealedCategoryCount = revealedBrowseCategoryCount,
+                        selectedSortMode = selectedBrowseSortMode,
                         topOverlayHeight = topOverlayHeight,
                         bottomOverlayHeight = bottomOverlayHeight,
                         browseTitleAlpha = if (hasFinishedMorph) {
@@ -301,6 +370,9 @@ fun CoreView(
                                 product = product,
                                 sourceBounds = sourceBounds
                             )
+                        },
+                        onCheckoutSelected = { sourceBounds ->
+                            checkoutSourceBounds = sourceBounds
                         }
                     )
                 }
@@ -403,9 +475,7 @@ fun CoreView(
                 sourceBounds = presentation.sourceBounds,
                 cartTargetBounds = cartTabBounds,
                 isCartMode = selectedProductWasOpenedFromCart,
-                isSaved = savedProducts.any { product ->
-                    product.id == presentation.product.id
-                },
+                isSaved = savedProductIds.contains(presentation.product.id),
                 cartQuantity = cartProducts.count { product ->
                     product.id == presentation.product.id
                 },
@@ -436,8 +506,12 @@ fun CoreView(
                     }
                 },
                 onSavedClicked = { product ->
-                    val alreadySaved = savedProducts.any { savedProduct ->
-                        savedProduct.id == product.id
+                    val alreadySaved = savedProductIds.contains(product.id)
+
+                    savedProductIds = if (alreadySaved) {
+                        savedProductIds - product.id
+                    } else {
+                        savedProductIds + product.id
                     }
 
                     savedProducts = if (alreadySaved) {
@@ -445,12 +519,30 @@ fun CoreView(
                             savedProduct.id == product.id
                         }
                     } else {
-                        savedProducts + product
+                        val alreadyInSavedProducts = savedProducts.any { savedProduct ->
+                            savedProduct.id == product.id
+                        }
+
+                        if (alreadyInSavedProducts) {
+                            savedProducts
+                        } else {
+                            savedProducts + product
+                        }
                     }
                 },
                 onDismissed = {
                     selectedProductPresentation = null
                     selectedProductWasOpenedFromCart = false
+                }
+            )
+        }
+
+        checkoutSourceBounds?.let { sourceBounds ->
+            CheckoutDemoOverlayView(
+                modifier = Modifier.zIndex(30f),
+                sourceBounds = sourceBounds,
+                onDismissed = {
+                    checkoutSourceBounds = null
                 }
             )
         }
