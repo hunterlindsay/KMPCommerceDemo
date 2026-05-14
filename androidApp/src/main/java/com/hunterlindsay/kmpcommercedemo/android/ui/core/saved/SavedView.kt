@@ -1,143 +1,167 @@
-package com.hunterlindsay.kmpcommercedemo.android.ui.browse
+package com.hunterlindsay.kmpcommercedemo.android.ui.saved
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.layout.boundsInParent
-import androidx.compose.ui.layout.boundsInRoot
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.hunterlindsay.kmpcommercedemo.android.ui.CommerceDarkBlue
-import com.hunterlindsay.kmpcommercedemo.android.ui.core.browse.BrowseCategoryMapper
-import com.hunterlindsay.kmpcommercedemo.android.ui.core.browse.BrowseCategorySkeletonView
+import com.hunterlindsay.kmpcommercedemo.android.ui.CommerceWhite
+import com.hunterlindsay.kmpcommercedemo.android.ui.core.browse.BrowseProductRowView
 import com.hunterlindsay.kmpcommercedemo.concerns.products.Product
-import com.hunterlindsay.kmpcommercedemo.concerns.products.ProductService
 
 /**
  * Created by Hunter Lindsay on 12/05/2026.
  */
 
 @Composable
-fun BrowseView(
-    productService: ProductService,
-    revealedCategoryCount: Int,
+fun SavedView(
+    products: List<Product>,
     topOverlayHeight: Dp,
     bottomOverlayHeight: Dp,
-    browseTitleAlpha: Float,
     modifier: Modifier = Modifier,
-    onBrowseTitlePositioned: (Rect) -> Unit = {},
-    onCategoryExpanded: (String) -> Unit,
     onProductSelected: (Product, Rect) -> Unit
 ) {
-    val density = LocalDensity.current
-    val productServiceState by productService.state.collectAsState()
-
-    var browseTitleHeightPx by remember {
-        mutableFloatStateOf(0f)
-    }
-
-    val browseTitleHeight = with(density) {
-        browseTitleHeightPx.toDp()
-    }
-
     val horizontalPadding = 22.dp
     val titleTopPadding = topOverlayHeight
-    val titleToListSpacing = 12.dp
+    val titleHeight = 38.dp
+    val titleToListSpacing = 40.dp
 
     val listTopPadding =
         titleTopPadding +
-                browseTitleHeight +
+                titleHeight +
                 titleToListSpacing
 
-    val invisibleBottomScrollSpace = 220.dp
-    val listBottomPadding = bottomOverlayHeight + invisibleBottomScrollSpace
+    val listBottomPadding = bottomOverlayHeight + 220.dp
 
     val topFadeHeight =
         titleTopPadding +
-                browseTitleHeight +
-                10.dp
-
-    val mapper = remember {
-        BrowseCategoryMapper()
-    }
-
-    val browseCategories = remember(productServiceState.categories) {
-        mapper.mapProductCategories(
-            productCategories = productServiceState.categories
-        )
-    }
+                titleHeight +
+                20.dp
 
     Box(
         modifier = modifier
             .fillMaxSize()
             .padding(horizontal = horizontalPadding)
     ) {
-        if (productServiceState.categories.isEmpty()) {
-            BrowseCategorySkeletonView(
+        if (products.isEmpty()) {
+            EmptySavedView(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = listTopPadding)
             )
         } else {
-            BrowseCategorySelectorView(
-                categories = browseCategories,
-                productsByCategoryId = productServiceState.productsByCategoryId,
-                loadingCategoryIds = productServiceState.loadingCategoryIds,
-                revealedCategoryCount = revealedCategoryCount,
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(
                     top = listTopPadding,
                     bottom = listBottomPadding
                 ),
-                modifier = Modifier.fillMaxSize(),
-                onCategoryExpanded = onCategoryExpanded,
-                onProductSelected = onProductSelected
-            )
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(
+                    items = products,
+                    key = { product ->
+                        product.id
+                    }
+                ) { product ->
+                    BrowseProductRowView(
+                        product = product,
+                        onProductSelected = onProductSelected
+                    )
+                }
+
+                item {
+                    Spacer(
+                        modifier = Modifier.height(1.dp)
+                    )
+                }
+            }
         }
 
-        BrowseTopFade(
+        SavedTopFade(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(topFadeHeight)
                 .zIndex(1f)
         )
 
-        BrowseTitleView(
+        SavedTitleView(
             modifier = Modifier
                 .padding(top = titleTopPadding)
-                .alpha(browseTitleAlpha)
-                .onGloballyPositioned { coordinates ->
-                    browseTitleHeightPx = coordinates.boundsInParent().height
-                    onBrowseTitlePositioned(coordinates.boundsInRoot())
-                }
                 .zIndex(2f)
         )
     }
 }
 
 @Composable
-private fun BrowseTopFade(
+private fun EmptySavedView(
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .background(
+                color = CommerceWhite.copy(alpha = 0.16f),
+                shape = RoundedCornerShape(32.dp)
+            )
+            .padding(
+                horizontal = 24.dp,
+                vertical = 34.dp
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = "Nothing saved yet",
+                fontWeight = FontWeight.Black,
+                fontSize = 24.sp,
+                lineHeight = 25.sp,
+                textAlign = TextAlign.Center,
+                color = CommerceWhite
+            )
+
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = "Tap the star on a product to keep it here.",
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp,
+                lineHeight = 18.sp,
+                textAlign = TextAlign.Center,
+                color = CommerceWhite.copy(alpha = 0.66f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun SavedTopFade(
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -156,10 +180,10 @@ private fun BrowseTopFade(
 }
 
 @Composable
-private fun BrowseTitleView(
+private fun SavedTitleView(
     modifier: Modifier = Modifier
 ) {
-    val title = "BROWSE"
+    val title = "SAVED"
     val color = MaterialTheme.colorScheme.onBackground
 
     Box(

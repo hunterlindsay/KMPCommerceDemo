@@ -28,8 +28,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.unit.dp
 import com.hunterlindsay.kmpcommercedemo.android.ui.core.browse.BrowseCategory
+import com.hunterlindsay.kmpcommercedemo.android.ui.core.browse.BrowseProductListView
+import com.hunterlindsay.kmpcommercedemo.concerns.products.Product
 
 /**
  * Created by Hunter Lindsay on 12/05/2026.
@@ -39,12 +42,14 @@ import com.hunterlindsay.kmpcommercedemo.android.ui.core.browse.BrowseCategory
 @Composable
 fun BrowseCategorySelectorView(
     categories: List<BrowseCategory>,
+    productsByCategoryId: Map<String, List<Product>>,
     loadingCategoryIds: Set<String>,
     revealedCategoryCount: Int,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(),
     onCategoryExpanded: (String) -> Unit = {},
-    onCategorySelected: (BrowseCategory) -> Unit = {}
+    onCategorySelected: (BrowseCategory) -> Unit = {},
+    onProductSelected: (Product, Rect) -> Unit
 ) {
     val listState = rememberLazyListState()
 
@@ -108,8 +113,8 @@ fun BrowseCategorySelectorView(
                     category = category,
                     isExpanded = expandedCategoryId == category.id,
                     isSelected = selectedCategoryId == category.id,
-                    selectedCategoryId = selectedCategoryId,
-                    isLoadingChildren = loadingCategoryIds.contains(category.id),
+                    isLoadingProducts = loadingCategoryIds.contains(category.id),
+                    products = productsByCategoryId[category.id].orEmpty(),
                     onParentClicked = {
                         selectedCategoryId = category.id
 
@@ -127,10 +132,7 @@ fun BrowseCategorySelectorView(
 
                         onCategorySelected(category)
                     },
-                    onChildClicked = { childCategory ->
-                        selectedCategoryId = childCategory.id
-                        onCategorySelected(childCategory)
-                    }
+                    onProductSelected = onProductSelected
                 )
             }
         }
@@ -142,11 +144,11 @@ private fun BrowseCategoryExpandableRowView(
     category: BrowseCategory,
     isExpanded: Boolean,
     isSelected: Boolean,
-    selectedCategoryId: String?,
-    isLoadingChildren: Boolean,
+    isLoadingProducts: Boolean,
+    products: List<Product>,
     modifier: Modifier = Modifier,
     onParentClicked: () -> Unit,
-    onChildClicked: (BrowseCategory) -> Unit
+    onProductSelected: (Product, Rect) -> Unit
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -154,7 +156,7 @@ private fun BrowseCategoryExpandableRowView(
     ) {
         BrowseCategoryPillView(
             title = category.title,
-            isSelected = isSelected,
+            isSelected = isSelected && isExpanded,
             isChild = false,
             isExpanded = isExpanded,
             showsChevron = true,
@@ -177,9 +179,9 @@ private fun BrowseCategoryExpandableRowView(
             )
         ) {
             AnimatedContent(
-                targetState = ChildContentState(
-                    isLoading = isLoadingChildren,
-                    children = category.children
+                targetState = BrowseProductContentState(
+                    isLoading = isLoadingProducts,
+                    products = products
                 ),
                 transitionSpec = {
                     fadeIn(
@@ -199,35 +201,22 @@ private fun BrowseCategoryExpandableRowView(
                         }
                     )
                 },
-                label = "BrowseCategoryChildContent"
-            ) { childContentState ->
-                Column(
+                label = "BrowseCategoryProductContent"
+            ) { contentState ->
+                BrowseProductListView(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(start = 26.dp),
-                    verticalArrangement = Arrangement.spacedBy(9.dp)
-                ) {
-                    if (childContentState.isLoading) {
-                        BrowseChildCategorySkeletonView()
-                    } else {
-                        childContentState.children.forEach { childCategory ->
-                            BrowseCategoryPillView(
-                                title = childCategory.title,
-                                isSelected = selectedCategoryId == childCategory.id,
-                                isChild = true,
-                                onClick = {
-                                    onChildClicked(childCategory)
-                                }
-                            )
-                        }
-                    }
-                }
+                    products = contentState.products,
+                    isLoading = contentState.isLoading,
+                    onProductSelected = onProductSelected
+                )
             }
         }
     }
 }
 
-private data class ChildContentState(
+private data class BrowseProductContentState(
     val isLoading: Boolean,
-    val children: List<BrowseCategory>
+    val products: List<Product>
 )

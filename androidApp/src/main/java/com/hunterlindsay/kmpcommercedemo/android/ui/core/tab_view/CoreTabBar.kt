@@ -11,6 +11,9 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
 
 /**
@@ -21,7 +24,9 @@ import androidx.compose.ui.unit.dp
 fun CoreTabBar(
     selectedTab: CoreTab,
     isVisible: Boolean,
+    cartItemCount: Int,
     modifier: Modifier = Modifier,
+    onTabPositioned: (CoreTab, Rect) -> Unit = { _, _ -> },
     onTabSelected: (CoreTab) -> Unit
 ) {
     AnimatedVisibility(
@@ -49,8 +54,19 @@ fun CoreTabBar(
         ) {
             CoreTab.entries.forEach { tab ->
                 CoreTabBarItem(
+                    modifier = Modifier.onGloballyPositioned { coordinates ->
+                        onTabPositioned(
+                            tab,
+                            coordinates.boundsInRoot()
+                        )
+                    },
                     tab = tab,
                     isSelected = selectedTab == tab,
+                    badgeCount = if (tab == CoreTab.Cart) {
+                        cartItemCount
+                    } else {
+                        0
+                    },
                     onClick = {
                         onTabSelected(tab)
                     }

@@ -1,8 +1,8 @@
-package com.hunterlindsay.kmpcommercedemo.android.ui.core.transition_supporting_views
+package com.hunterlindsay.kmpcommercedemo.android.ui.core
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -59,12 +59,19 @@ fun StartShoppingButtonMorphTransition(
         progress = progress
     )
 
-    val startTextAlpha = ((0.78f - progress) / 0.20f).coerceIn(0f, 1f)
-    val browseTextAlpha = ((progress - 0.62f) / 0.22f).coerceIn(0f, 1f)
+    val backgroundAlpha = ((0.70f - progress) / 0.36f).coerceIn(0f, 1f)
+    val startTextAlpha = ((0.52f - progress) / 0.24f).coerceIn(0f, 1f)
+    val browseTextAlpha = ((progress - 0.26f) / 0.34f).coerceIn(0f, 1f)
 
-    val textSize = lerp(
+    val browseTextSize = lerp(
         start = 24f,
-        end = 14f,
+        end = 38f,
+        progress = progress
+    )
+
+    val browseLetterSpacing = lerp(
+        start = 0f,
+        end = 1.5f,
         progress = progress
     )
 
@@ -88,37 +95,44 @@ fun StartShoppingButtonMorphTransition(
             )
             .clip(shape)
             .background(
-                color = MaterialTheme.colorScheme.primary,
+                color = MaterialTheme.colorScheme.primary.copy(alpha = backgroundAlpha),
                 shape = shape
             )
-            .clickable(onClick = {}),
-        contentAlignment = Alignment.Center
     ) {
-        Text(
-            modifier = Modifier
-                .offset(y = (-1).dp)
-                .alpha(startTextAlpha),
-            text = "Start Shopping!",
-            textAlign = TextAlign.Center,
-            fontWeight = FontWeight.Black,
-            fontSize = textSize.sp,
-            lineHeight = textSize.sp,
-            maxLines = 1,
-            color = MaterialTheme.colorScheme.onPrimary
-        )
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                modifier = Modifier
+                    .offset(y = (-1).dp)
+                    .alpha(startTextAlpha),
+                text = "Start Shopping!",
+                textAlign = TextAlign.Center,
+                fontWeight = FontWeight.Black,
+                fontSize = 24.sp,
+                lineHeight = 24.sp,
+                maxLines = 1,
+                color = MaterialTheme.colorScheme.onPrimary
+            )
+        }
 
-        Text(
-            modifier = Modifier
-                .offset(y = (-1).dp)
-                .alpha(browseTextAlpha),
-            text = "Filter",
-            textAlign = TextAlign.Center,
-            fontWeight = FontWeight.Black,
-            fontSize = 14.sp,
-            lineHeight = 14.sp,
-            maxLines = 1,
-            color = MaterialTheme.colorScheme.onPrimary
-        )
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.TopStart
+        ) {
+            Text(
+                modifier = Modifier.alpha(browseTextAlpha),
+                text = "BROWSE",
+                textAlign = TextAlign.Start,
+                fontWeight = FontWeight.Black,
+                fontSize = browseTextSize.sp,
+                lineHeight = browseTextSize.sp,
+                letterSpacing = browseLetterSpacing.sp,
+                maxLines = 1,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        }
     }
 }
 

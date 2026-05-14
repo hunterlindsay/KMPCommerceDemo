@@ -38,6 +38,8 @@ android {
 
 dependencies {
     implementation("androidx.core:core-ktx:1.13.1")
+    implementation("io.coil-kt.coil3:coil-compose:3.1.0")
+    implementation("io.coil-kt.coil3:coil-network-okhttp:3.1.0")
     implementation(projects.shared)
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.tooling.preview)

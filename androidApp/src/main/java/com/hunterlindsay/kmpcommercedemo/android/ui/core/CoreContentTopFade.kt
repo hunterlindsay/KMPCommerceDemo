@@ -1,4 +1,4 @@
-package com.hunterlindsay.kmpcommercedemo.android.ui.core.browse
+package com.hunterlindsay.kmpcommercedemo.android.ui.core
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
